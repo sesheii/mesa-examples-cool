@@ -21,7 +21,12 @@ class BarCustomer(mesa.Agent):
         prediction = self.predict_attendance(
             self.best_strategy, self.model.history[-self.memory_size :]
         )
-        if prediction <= self.crowd_threshold:
+
+        # generate a number to determine whether to ignore the prediction or not
+        random_decision = np.random.rand()
+
+        # customer has 50% chance to ignore the prediction and go to the bar anyway
+        if prediction <= self.crowd_threshold or random_decision <= 0.5:
             self.attend = True
             self.model.attendance += 1
 
