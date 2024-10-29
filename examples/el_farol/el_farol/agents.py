@@ -14,6 +14,9 @@ class BarCustomer(mesa.Agent):
         self.utility = 0
         self.update_strategies()
 
+        # counter of customers who arrived when the crowd_threshold was reached
+        self.arrived_when_full = 0
+
     def update_attendance(self):
         prediction = self.predict_attendance(
             self.best_strategy, self.model.history[-self.memory_size :]
@@ -21,6 +24,10 @@ class BarCustomer(mesa.Agent):
         if prediction <= self.crowd_threshold:
             self.attend = True
             self.model.attendance += 1
+
+            # increase the counter when a customer arrives when crowd_threshold is reached
+            if self.model.attendance > self.crowd_threshold:
+                self.arrived_when_full += 1
         else:
             self.attend = False
 
