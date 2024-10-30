@@ -3,8 +3,8 @@ import numpy as np
 
 
 class BarCustomer(mesa.Agent):
-    def __init__(self, model, memory_size, crowd_threshold, num_strategies):
-        super().__init__(model)
+    def __init__(self, model, memory_size, crowd_threshold, num_strategies, unique_id):
+        super().__init__(unique_id, model)
         # Random values from -1.0 to 1.0
         self.strategies = np.random.rand(num_strategies, memory_size + 1) * 2 - 1
         self.best_strategy = self.strategies[0]
@@ -14,13 +14,25 @@ class BarCustomer(mesa.Agent):
         self.utility = 0
         self.update_strategies()
 
+        # counter of customers who arrived when the crowd_threshold was reached
+        self.arrived_when_full = 0
+
     def update_attendance(self):
         prediction = self.predict_attendance(
             self.best_strategy, self.model.history[-self.memory_size :]
         )
-        if prediction <= self.crowd_threshold:
+
+        # generate a number to determine whether to ignore the prediction or not
+        random_decision = np.random.rand()
+
+        # customer has 50% chance to ignore the prediction and go to the bar anyway
+        if prediction <= self.crowd_threshold or random_decision <= 0.5:
             self.attend = True
             self.model.attendance += 1
+
+            # increase the counter when a customer arrives when crowd_threshold is reached
+            if self.model.attendance > self.crowd_threshold:
+                self.arrived_when_full += 1
         else:
             self.attend = False
 

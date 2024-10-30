@@ -23,8 +23,12 @@ class ElFarolBar(mesa.Model):
         # strategies would have worked.
         self.history = np.random.randint(0, 100, size=memory_size * 2).tolist()
         self.attendance = self.history[-1]
-        for _ in range(self.num_agents):
-            BarCustomer(self, memory_size, crowd_threshold, num_strategies)
+
+        # array for storing counters of customers who arrived when the crowd_threshold was reached
+        self.arrived_when_full = []
+
+        for unique_id in range(self.num_agents):
+            BarCustomer(self, memory_size, crowd_threshold, num_strategies, unique_id)
 
         self.datacollector = mesa.DataCollector(
             model_reporters={"Customers": "attendance"},
@@ -35,6 +39,11 @@ class ElFarolBar(mesa.Model):
         self.datacollector.collect(self)
         self.attendance = 0
         self.agents.shuffle_do("update_attendance")
+
+        # save count of customers who arrived at a full bar
+        total_arrived_when_full = sum(agent.arrived_when_full for agent in self.agents)
+        self.arrived_when_full.append(total_arrived_when_full)
+
         # We ensure that the length of history is constant
         # after each step.
         self.history.pop(0)
